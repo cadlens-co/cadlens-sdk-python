@@ -25,7 +25,7 @@ Requires Python 3.8+ and [`httpx`](https://www.python-httpx.org/).
 ```python
 from cadlens import CadlensClient
 
-client = CadlensClient(api_key="cad_your_key_here")
+client = CadlensClient(api_key="cadl_your_key_here")
 
 # One-shot: upload + poll + return result
 result = client.parse_and_wait("drawing.dwg")
@@ -44,7 +44,7 @@ print("Preview: ", result.image_url)
 import time
 from cadlens import CadlensClient
 
-client = CadlensClient(api_key="cad_your_key_here")
+client = CadlensClient(api_key="cadl_your_key_here")
 
 # 1. Upload
 upload = client.parse("drawing.dwg")
@@ -72,7 +72,7 @@ print(result.vector_json[:5])
 ## Context Manager
 
 ```python
-with CadlensClient(api_key="cad_your_key_here") as client:
+with CadlensClient(api_key="cadl_your_key_here") as client:
     result = client.parse_and_wait("drawing.dwg")
 ```
 
@@ -84,7 +84,7 @@ with CadlensClient(api_key="cad_your_key_here") as client:
 
 | Argument | Type | Description |
 |----------|------|-------------|
-| `api_key` | `str` | Your `cad_xxx` API key (required) |
+| `api_key` | `str` | Your `cadl_xxx` API key (required) |
 | `base_url` | `str` | Override API base URL (default: `https://api.cadlens.co`) |
 
 ### Methods
@@ -109,7 +109,7 @@ DWG · DXF · DWF · DWFx · DGN · PDF
 
 ## Get an API Key
 
-Sign up at [cadlens.co](https://cadlens.co), go to the dashboard, and create an API key. Keys start with `cad_`.
+Sign up at [cadlens.co](https://cadlens.co), go to the dashboard, and create an API key. Keys start with `cadl_`.
 
 ---
 
