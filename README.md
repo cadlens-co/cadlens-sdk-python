@@ -95,7 +95,7 @@ with CadlensClient(api_key="cadl_your_key_here") as client:
 | `parse_and_wait(file, ...)` | `JobResult` | Upload, poll, and return result |
 | `get_job(job_id)` | `Job` | Get job status and metadata |
 | `list_jobs()` | `list[Job]` | List recent jobs (up to 100) |
-| `get_result(job_id)` | `JobResult` | Get vectorJson, layersJson, metadata |
+| `get_result(job_id)` | `JobResult` | Get `file`, `summary`, `sheets[]` (entities + layers per sheet) |
 | `get_image(job_id)` | `str` | Get presigned PNG preview URL (1h TTL) |
 | `delete_job(job_id)` | `None` | Delete job and S3 artifacts |
 
