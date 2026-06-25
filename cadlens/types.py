@@ -36,6 +36,7 @@ class Layer:
 class Sheet:
     def __init__(self, data: dict[str, Any]) -> None:
         self.name: str = data["name"]
+        self.key: str = data.get("key", "")
         self.index: int = data["index"]
         self.image_url: str | None = data.get("imageUrl")
         self.entity_count: int = data.get("entityCount", 0)
@@ -56,6 +57,9 @@ class DrawingMetadata:
         self.format: str = data.get("format", "")
         self.units: str = data.get("units", "")
         self.bounding_box: dict[str, float] = data.get("boundingBox", {})
+        self.layouts: list[str] = data.get("layouts", [])
+        self.layout_labels: list[str] = data.get("layoutLabels", [])
+        self.layout_keys: list[str] = data.get("layoutKeys", [])
 
     def __repr__(self) -> str:
         return f"<DrawingMetadata format={self.format!r} units={self.units!r}>"
