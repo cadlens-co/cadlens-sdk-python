@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0] — 2026-07-02
+
+### Added
+- `HATCH` entities in `sheet.entities` now include `patternLines` — exact hatch
+  pattern geometry (line families: `angle`, `base`, `offset`, `dashes`, in drawing
+  units with rotation/scale applied). `patternAngle` / `patternScale` are now also
+  reliably populated.
+- `DrawingMetadata.linetype_patterns` (LTYPE table: name -> dash/gap array) and
+  `DrawingMetadata.ltscale` ($LTSCALE) mapped from the result metadata.
+
+### Fixed (API behaviour, no client change required)
+- Mirrored-OCS entities (DXF extrusion normal 0,0,-1) are returned at correct WCS
+  coordinates; nested blocks under mirrored inserts expand with correct rotation.
+- 2D entities with small Z artifacts are projected instead of dropped — entity
+  counts may increase slightly for affected drawings.
+
 ## [0.2.1] — 2026-06-26
 
 ### Fixed

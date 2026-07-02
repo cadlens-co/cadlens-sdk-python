@@ -60,6 +60,10 @@ class DrawingMetadata:
         self.layouts: list[str] = data.get("layouts", [])
         self.layout_labels: list[str] = data.get("layoutLabels", [])
         self.layout_keys: list[str] = data.get("layoutKeys", [])
+        # LTYPE table: linetype name -> dash/gap array in drawing units (+ dash, - gap)
+        self.linetype_patterns: dict[str, list[float]] = data.get("linetypePatterns", {})
+        # DXF $LTSCALE global linetype scale factor
+        self.ltscale: float = data.get("ltscale", 1.0)
 
     def __repr__(self) -> str:
         return f"<DrawingMetadata format={self.format!r} units={self.units!r}>"
