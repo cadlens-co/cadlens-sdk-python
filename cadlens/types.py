@@ -69,6 +69,48 @@ class DrawingMetadata:
         return f"<DrawingMetadata format={self.format!r} units={self.units!r}>"
 
 
+class WebhookResult:
+    """``result`` block of a ``job.completed`` webhook.
+
+    Sheets carry metadata only (no ``entities``/``layers``) — fetch full
+    geometry from ``result_url`` (GET /v1/jobs/:id/result). Payloads over
+    256 KB omit ``sheets`` entirely.
+    """
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self.image_url: str | None = data.get("imageUrl")
+        self.image_urls: list[str] = data.get("imageUrls", [])
+        self.file: dict[str, str] | None = data.get("file")
+        self.summary: dict[str, Any] | None = data.get("summary")
+        # Slim sheets: Sheet objects with empty entities/layers lists.
+        self.sheets: list[Sheet] = [Sheet(s) for s in data.get("sheets", [])]
+        self.metadata: DrawingMetadata = DrawingMetadata(data.get("metadata", {}))
+        # URL of the full parse result (entities, layers) on the CADLens API.
+        self.result_url: str | None = data.get("resultUrl")
+
+    def __repr__(self) -> str:
+        return f"<WebhookResult sheets={len(self.sheets)} result_url={self.result_url!r}>"
+
+
+class WebhookPayload:
+    """Body of a CADLens webhook POST."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self.event_id: str = data.get("eventId", "")
+        self.sequence: int = data.get("sequence", 0)
+        self.event: str = data.get("event", "")
+        self.job_id: str = data.get("jobId", "")
+        self.status: str = data.get("status", "")
+        self.timestamp: str = data.get("timestamp", "")
+        self.result: WebhookResult | None = (
+            WebhookResult(data["result"]) if data.get("result") else None
+        )
+        self.error: str | None = data.get("error")
+
+    def __repr__(self) -> str:
+        return f"<WebhookPayload event={self.event!r} job_id={self.job_id!r}>"
+
+
 class JobResult:
     def __init__(self, data: dict[str, Any]) -> None:
         self.job_id: str = data["jobId"]

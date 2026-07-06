@@ -51,8 +51,14 @@ class CadlensClient:
         file_name: str | None = None,
         webhook_url: str | None = None,
         mode: str = "async",
+        notify_email: str | None = None,
     ) -> dict[str, Any]:
-        """Upload a CAD file for parsing. Returns job metadata including job_id."""
+        """Upload a CAD file for parsing. Returns job metadata including job_id.
+
+        ``notify_email``: optional address CADLens emails a job link to when the
+        parse finishes — only if the uploader is no longer watching (polls with
+        ``watch=True`` suppress the email when the result is seen live).
+        """
         if isinstance(file, (str, Path)):
             path = Path(file)
             file_name = file_name or path.name
@@ -65,14 +71,22 @@ class CadlensClient:
         data: dict[str, str] = {"mode": mode}
         if webhook_url:
             data["webhookUrl"] = webhook_url
+        if notify_email:
+            data["notifyEmail"] = notify_email
 
         res = self._http.post("/v1/parse", files=files, data=data)
         self._raise_for(res)
         return res.json()
 
-    def get_job(self, job_id: str) -> Job:
-        """Fetch current status and metadata for a job."""
-        res = self._http.get(f"/v1/jobs/{job_id}")
+    def get_job(self, job_id: str, watch: bool = False) -> Job:
+        """Fetch current status and metadata for a job.
+
+        Pass ``watch=True`` from interactive poll loops: it marks the caller as
+        a live viewer, so a job's ``notify_email`` is suppressed when the user
+        watches it finish. Leave ``False`` for unattended/server-side polling.
+        """
+        params = {"watch": "1"} if watch else None
+        res = self._http.get(f"/v1/jobs/{job_id}", params=params)
         self._raise_for(res)
         return Job(res.json())
 

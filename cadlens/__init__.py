@@ -1,6 +1,6 @@
 from .client import CadlensClient
 from .exceptions import AuthError, CadlensError, JobFailedError, JobNotReadyError
-from .types import DrawingMetadata, Job, JobResult, Layer
+from .types import DrawingMetadata, Job, JobResult, Layer, WebhookPayload, WebhookResult
 
 __all__ = [
     "CadlensClient",
@@ -12,4 +12,6 @@ __all__ = [
     "JobResult",
     "Layer",
     "DrawingMetadata",
+    "WebhookPayload",
+    "WebhookResult",
 ]
