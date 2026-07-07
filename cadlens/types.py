@@ -64,6 +64,8 @@ class DrawingMetadata:
         self.linetype_patterns: dict[str, list[float]] = data.get("linetypePatterns", {})
         # DXF $LTSCALE global linetype scale factor
         self.ltscale: float = data.get("ltscale", 1.0)
+        # Count of 3D-only entity types (3DSOLID/BODY/SURFACE/REGION/MESH) with no extractable geometry
+        self.unsupported_3d_count: int | None = data.get("unsupported3DCount")
 
     def __repr__(self) -> str:
         return f"<DrawingMetadata format={self.format!r} units={self.units!r}>"
