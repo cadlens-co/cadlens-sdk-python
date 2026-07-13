@@ -33,6 +33,52 @@ class Layer:
         return f"<Layer name={self.name!r} entities={self.entity_count}>"
 
 
+class Entity:
+    """Schema v2 entity envelope.
+
+    ``geometry`` holds spatial data only (per-type fields, original precision —
+    e.g. LINE: ``start``/``end``; LWPOLYLINE: ``vertices``/``closed``/``filled``).
+    ``bbox`` and ``metrics`` are always present with ``None`` values when not
+    applicable. ``handle`` is the original CAD handle (or ``None`` — never
+    derived from ``id``); ``category`` is one of ``Geometry``, ``Annotation``,
+    ``BlockReference``, ``Hatch``, ``Other``.
+    """
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self.id: str = data.get("id", "")
+        self.handle: str | None = data.get("handle")
+        self.type: str = data.get("type", "")
+        self.category: str = data.get("category", "Other")
+        self.layer: str = data.get("layer", "")
+        self.layout: str | None = data.get("layout")
+        self.geometry: dict[str, Any] = data.get("geometry", {})
+        # TEXT/MTEXT only: {"value", "height", "style"} — None on other types.
+        self.text: dict[str, Any] | None = data.get("text")
+        # INSERT only: {"blockName"} — None on other types.
+        self.reference: dict[str, Any] | None = data.get("reference")
+        self.properties: dict[str, Any] = data.get("properties", {})
+        self.bbox: dict[str, float | None] = data.get("bbox", {})
+        # {"length", "area", "perimeter", "vertexCount"} — values None when N/A.
+        self.metrics: dict[str, float | None] = data.get("metrics", {})
+        #: Raw entity dict as returned by the API.
+        self.raw: dict[str, Any] = data
+
+    def __repr__(self) -> str:
+        return f"<Entity type={self.type!r} id={self.id!r} layer={self.layer!r}>"
+
+
+class ParseInfo:
+    """Parse diagnostics. ``duration_ms`` is ``None`` for jobs parsed before Schema v2."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self.duration_ms: int | None = data.get("durationMs")
+        self.warnings: list[str] = data.get("warnings", [])
+        self.errors: list[str] = data.get("errors", [])
+
+    def __repr__(self) -> str:
+        return f"<ParseInfo duration_ms={self.duration_ms!r} warnings={len(self.warnings)}>"
+
+
 class Sheet:
     def __init__(self, data: dict[str, Any]) -> None:
         self.name: str = data["name"]
@@ -42,7 +88,7 @@ class Sheet:
         self.entity_count: int = data.get("entityCount", 0)
         self.layer_count: int = data.get("layerCount", 0)
         self.layers: list[Layer] = [Layer(l) for l in data.get("layers", [])]
-        self.entities: list[dict[str, Any]] = data.get("entities", [])
+        self.entities: list[Entity] = [Entity(e) for e in data.get("entities", [])]
         self.bounding_box: dict[str, float] = data.get("boundingBox", {})
         self.area: float = data.get("area", 0)
         self.perimeter: float = data.get("perimeter", 0)
@@ -80,6 +126,8 @@ class WebhookResult:
     """
 
     def __init__(self, data: dict[str, Any]) -> None:
+        # Semver of the result JSON contract (Schema v2 = "2.0.0").
+        self.schema_version: str | None = data.get("schemaVersion")
         self.image_url: str | None = data.get("imageUrl")
         self.image_urls: list[str] = data.get("imageUrls", [])
         self.file: dict[str, str] | None = data.get("file")
@@ -115,15 +163,29 @@ class WebhookPayload:
 
 class JobResult:
     def __init__(self, data: dict[str, Any]) -> None:
+        # Semver of the JSON contract (Schema v2 = "2.0.0"); None on pre-v2 responses.
+        self.schema_version: str | None = data.get("schemaVersion")
+        # CAD parser engine version, independent of application releases.
+        self.parser_version: str | None = data.get("parserVersion")
         self.job_id: str = data["jobId"]
         self.status: JobStatus = data["status"]
         self.file: dict[str, str] | None = data.get("file")
         self.summary: dict[str, Any] | None = data.get("summary")
         self.sheets: list[Sheet] = [Sheet(s) for s in data.get("sheets", [])]
         self.metadata: DrawingMetadata = DrawingMetadata(data.get("metadata", {}))
+        self.parse_info: ParseInfo | None = (
+            ParseInfo(data["parseInfo"]) if data.get("parseInfo") else None
+        )
         self.image_url: str | None = data.get("imageUrl")
         self.image_urls: list[str] = data.get("imageUrls", [])
         self.created_at: str = data["createdAt"]
+
+    @property
+    def statistics(self) -> dict[str, dict[str, int]]:
+        """Entity counts grouped ``byType`` and ``byCategory`` (empty dicts pre-v2)."""
+        if self.summary:
+            return self.summary.get("statistics", {})
+        return {}
 
     @property
     def total_entities(self) -> int:

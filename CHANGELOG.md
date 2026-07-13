@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.6.0] — 2026-07-13
+
+### Changed — BREAKING (API Schema v2.0.0)
+- `Sheet.entities` is now a list of typed `Entity` objects (was raw dicts).
+  Flat coordinate fields (`start`, `end`, `vertices`, `center`, `position`,
+  `radius`, angles, scales) moved into `entity.geometry` — read coordinates
+  from `entity.geometry["..."]` now (the raw dict remains available as
+  `entity.raw`). Each entity also carries `handle` (original CAD handle or
+  `None` — never derived from `id`), `category` (`Geometry` / `Annotation` /
+  `BlockReference` / `Hatch` / `Other`), `layout`, and always-present
+  `properties`, `bbox`, `metrics` (computed helpers, 6-decimal, `None` when
+  not applicable), plus `text` (TEXT/MTEXT) and `reference` (INSERT).
+
+### Added
+- `JobResult.schema_version` / `JobResult.parser_version` ("2.0.0").
+- `JobResult.parse_info` (`ParseInfo`): `duration_ms` (`None` for jobs parsed
+  before Schema v2), `warnings`, `errors`.
+- `JobResult.statistics` property: entity counts `byType` and `byCategory`.
+- `WebhookResult.schema_version` (additive — webhook sheets stay metadata-only).
+- `Entity`, `ParseInfo`, `Sheet` exported from the package root.
+
 ## [0.5.0] — 2026-07-07
 
 ### Added
